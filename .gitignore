@@ -1,0 +1,21 @@
+# System / editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Generated deployment output and Python cache
+/dist/
+__pycache__/
+*.py[cod]
+
+# Local secrets and private learning-data exports
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+/backups/
+*backup*.json
+*备份*.json
+*.log

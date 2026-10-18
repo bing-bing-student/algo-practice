@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="550" viewBox="0 0 1000 550" role="img" aria-labelledby="title desc">
+  <title id="title">输入规模翻倍时不同复杂度的变化</title>
+  <desc id="desc">当输入规模从 n 增加到 2n 时，常数、对数、线性、线性对数和平方算法工作量的变化。</desc>
+  <style>
+    .bg { fill: #ffffff; }
+    .title { font: 700 28px system-ui, sans-serif; fill: #111827; }
+    .subtitle { font: 14px system-ui, sans-serif; fill: #475569; }
+    .label { font: 700 18px system-ui, sans-serif; fill: #1f2937; }
+    .desc { font: 15px system-ui, sans-serif; fill: #475569; }
+    .track { fill: #e2e8f0; }
+    .bar-good { fill: #16a34a; }
+    .bar-ok { fill: #2563eb; }
+    .bar-mid { fill: #7c3aed; }
+    .bar-warn { fill: #ea580c; }
+    .value { font: 700 16px system-ui, sans-serif; fill: #111827; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #111827; }
+      .title, .label, .value { fill: #f8fafc; }
+      .subtitle, .desc { fill: #cbd5e1; }
+      .track { fill: #334155; }
+      .bar-good { fill: #4ade80; }
+      .bar-ok { fill: #60a5fa; }
+      .bar-mid { fill: #c084fc; }
+      .bar-warn { fill: #fb923c; }
+    }
+  </style>
+
+  <rect class="bg" width="1000" height="550" rx="16"/>
+  <text class="title" x="500" y="44" text-anchor="middle">如果输入规模从 n 翻倍到 2n</text>
+  <text class="subtitle" x="500" y="70" text-anchor="middle">比较的不是绝对运行时间，而是工作量大约增加多少</text>
+
+  <text class="label" x="70" y="126">O(1)</text>
+  <rect class="track" x="220" y="102" width="570" height="30" rx="8"/>
+  <rect class="bar-good" x="220" y="102" width="72" height="30" rx="8"/>
+  <text class="value" x="820" y="124">基本不变</text>
+  <text class="desc" x="220" y="153">无论 n 多大，只做固定数量的操作</text>
+
+  <text class="label" x="70" y="216">O(log n)</text>
+  <rect class="track" x="220" y="192" width="570" height="30" rx="8"/>
+  <rect class="bar-good" x="220" y="192" width="105" height="30" rx="8"/>
+  <text class="value" x="820" y="214">只多一步左右</text>
+  <text class="desc" x="220" y="243">例如二分查找：log₂(2n) = log₂(n) + 1</text>
+
+  <text class="label" x="70" y="306">O(n)</text>
+  <rect class="track" x="220" y="282" width="570" height="30" rx="8"/>
+  <rect class="bar-ok" x="220" y="282" width="180" height="30" rx="8"/>
+  <text class="value" x="820" y="304">约 2 倍</text>
+  <text class="desc" x="220" y="333">元素数量翻倍，遍历次数也翻倍</text>
+
+  <text class="label" x="70" y="396">O(n log n)</text>
+  <rect class="track" x="220" y="372" width="570" height="30" rx="8"/>
+  <rect class="bar-mid" x="220" y="372" width="230" height="30" rx="8"/>
+  <text class="value" x="820" y="394">略多于 2 倍</text>
+  <text class="desc" x="220" y="423">常见于高效排序、堆排序以及许多分治算法</text>
+
+  <text class="label" x="70" y="486">O(n²)</text>
+  <rect class="track" x="220" y="462" width="570" height="30" rx="8"/>
+  <rect class="bar-warn" x="220" y="462" width="360" height="30" rx="8"/>
+  <text class="value" x="820" y="484">约 4 倍</text>
+  <text class="desc" x="220" y="513">(2n)² = 4n²，双层遍历在大数据下会明显变慢</text>
+
+</svg>

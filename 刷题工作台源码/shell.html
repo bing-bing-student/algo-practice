@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="按题型继续学习，自由安排日期，保留每一次练习和每道题的心得、分析与总结。离线可用的个人刷题工作台。">
+  <title>算法练习簿</title>
+  <style>
+{{STYLE}}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="modal-root"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <noscript><p class="noscript-message">请开启浏览器的 JavaScript 后使用算法练习簿。你的练习记录保存在当前浏览器中，可通过 JSON 备份携带和恢复。</p></noscript>
+  <script type="application/json" id="catalog-data">{{CATALOG}}</script>
+  <script>
+{{CORE}}
+  </script>
+  <script>
+{{UI}}
+  </script>
+</body>
+</html>
