@@ -1,8 +1,3 @@
-# This repository publishes only the website project.
-/*
-!/.gitignore
-!/网站/
-
 # System / editor files
 .DS_Store
 Thumbs.db
@@ -10,15 +5,15 @@ Thumbs.db
 *.swo
 
 # Generated deployment output and Python cache
-/网站/dist/
-/网站/*.html
+/dist/
+/*.html
 __pycache__/
 *.py[cod]
 
 # Local secrets and private learning-data exports
 .env
 .env.*
-!/网站/.env.example
+!/.env.example
 *.pem
 *.key
 /backups/

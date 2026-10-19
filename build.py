@@ -3,6 +3,7 @@
 
 from pathlib import Path
 import argparse
+import base64
 import json
 import re
 
@@ -60,6 +61,8 @@ def main():
     parser.add_argument("--local-html", type=Path, help="额外更新指定的本地 HTML 文件；相对路径按当前工作目录解析")
     args = parser.parse_args()
     shell = read("shell.html")
+    favicon = (SOURCE_DIR / "favicon.ico").read_bytes()
+    favicon_url = "data:image/x-icon;base64," + base64.b64encode(favicon).decode("ascii")
     style = read("app.css") + "\n" + read("markdown.css")
     core = read("core.js")
     picker = read("select.js")
@@ -83,13 +86,13 @@ def main():
     # harmless when the catalog is embedded in an application/json element.
     catalog_json = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     catalog_json = catalog_json.replace("<", "\\u003c").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
-    replacements = {"{{STYLE}}": style, "{{CATALOG}}": catalog_json, "{{CORE}}": core, "{{UI}}": "\n".join((picker, date_picker, markdown, editor, manager, ui))}
+    replacements = {"{{FAVICON}}": favicon_url, "{{STYLE}}": style, "{{CATALOG}}": catalog_json, "{{CORE}}": core, "{{UI}}": "\n".join((picker, date_picker, markdown, editor, manager, ui))}
     for token in replacements:
         if shell.count(token) != 1:
             raise ValueError(f"shell.html 必须且只能包含一次 {token}")
     # Match only original template tokens: injected sources cannot be interpreted
     # as another template substitution.
-    output = re.sub(r"\{\{(?:STYLE|CATALOG|CORE|UI)\}\}", lambda match: replacements[match.group(0)], shell)
+    output = re.sub(r"\{\{(?:FAVICON|STYLE|CATALOG|CORE|UI)\}\}", lambda match: replacements[match.group(0)], shell)
     if re.search(r"<script\b[^>]*\bsrc\s*=", output, flags=re.IGNORECASE):
         raise ValueError("单文件应用不允许依赖外部脚本")
     if re.search(r"<link\b[^>]*\brel\s*=\s*['\"]?stylesheet\b", output, flags=re.IGNORECASE):
@@ -99,6 +102,7 @@ def main():
     web_output = WEBSITE_DIR / "dist" / "index.html"
     web_output.parent.mkdir(parents=True, exist_ok=True)
     web_output.write_text(output, encoding="utf-8")
+    (web_output.parent / "favicon.ico").write_bytes(favicon)
     print(f"已生成 {web_output}（{len(catalog['categories'])} 类，{len(catalog['problems'])} 题）")
     if args.local_html:
         local_output = args.local_html.resolve()

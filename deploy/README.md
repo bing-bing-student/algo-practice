@@ -11,7 +11,7 @@ node --test tests/*.test.js
 python3 build.py
 ```
 
-发布产物只有 `dist/index.html`。可以将它放在独立域名根目录，也可以放在子目录中，例如 `/study/index.html`。专题文档使用页面的 `#document=...` 地址打开，不需要配置额外的服务端路由。
+发布产物是 `dist/index.html` 和 `dist/favicon.ico`。图标也已嵌入 HTML，保持单文件离线可用。可以将发布文件放在独立域名根目录，也可以放在子目录中，例如 `/study/index.html`。专题文档使用页面的 `#document=...` 地址打开，不需要配置额外的服务端路由。
 
 ## 2. 上传到服务器
 
@@ -19,6 +19,7 @@ python3 build.py
 
 ```sh
 scp dist/index.html user@your-server:/tmp/algo-practice-index.html
+scp dist/favicon.ico user@your-server:/tmp/algo-practice-favicon.ico
 ```
 
 然后在服务器执行：
@@ -26,9 +27,10 @@ scp dist/index.html user@your-server:/tmp/algo-practice-index.html
 ```sh
 sudo mkdir -p /var/www/algo-practice
 sudo install -m 644 /tmp/algo-practice-index.html /var/www/algo-practice/index.html
+sudo install -m 644 /tmp/algo-practice-favicon.ico /var/www/algo-practice/favicon.ico
 ```
 
-后续更新时重新构建并替换这个文件。上传 HTML 不会修改用户浏览器里已保存的练习记录。
+后续更新时重新构建并替换这两个文件。上传 HTML 不会修改用户浏览器里已保存的练习记录。
 
 ## 3. 配置 Nginx
 

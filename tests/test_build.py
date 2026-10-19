@@ -1,6 +1,8 @@
 """Check that the published website builds without the surrounding personal workspace."""
 
 from pathlib import Path
+import base64
+import re
 import shutil
 import subprocess
 import sys
@@ -34,6 +36,11 @@ class StandaloneBuildTests(unittest.TestCase):
     def test_default_build_is_self_contained_and_web_alias_is_compatible(self):
         output = self.build()
         self.assertIn("算法练习簿".encode(), output)
+        favicon = (self.website / "src" / "favicon.ico").read_bytes()
+        self.assertEqual((self.website / "dist" / "favicon.ico").read_bytes(), favicon)
+        icon_link = re.search(rb'<link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,([^"]+)">', output)
+        self.assertIsNotNone(icon_link, "本地 HTML 应包含无需外部文件的图标")
+        self.assertEqual(base64.b64decode(icon_link.group(1), validate=True), favicon)
         self.assertEqual(list(self.root.glob("*.html")), [])
         self.assertEqual(list(self.cwd.glob("*.html")), [])
         self.assertEqual(output, self.build("--web"))

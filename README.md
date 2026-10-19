@@ -4,6 +4,8 @@
 
 本目录是独立的网站项目。无后端、无运行时第三方依赖；构建只使用 Python 3 标准库，不需要安装 npm 依赖。
 
+本目录也是 Git 仓库根目录，在这里执行 Git 命令。GitHub 直接展示下方的源码结构；上级目录中的算法笔记和个人资料不属于本仓库。
+
 ## 构建与使用
 
 进入本目录（包含 `build.py` 的目录）后执行：
@@ -13,6 +15,8 @@ python3 build.py
 ```
 
 打开生成的 `dist/index.html` 即可使用，也可以将 `dist/` 发布到 Nginx。部署步骤见 [部署说明](deploy/README.md)。构建结果不纳入 Git。
+
+网站图标使用 `src/favicon.ico`。构建时嵌入 HTML，方便单文件离线使用，同时输出 `dist/favicon.ico` 供部署使用。
 
 如果一直通过另一个固定位置的 HTML 使用网站，可显式更新那个文件，保持原来的浏览器存储路径：
 
@@ -38,6 +42,7 @@ Node.js 测试覆盖日期、题库管理、数据备份、学习推荐、Markdo
 | 路径 | 内容 |
 | --- | --- |
 | `src/shell.html` | HTML 模板 |
+| `src/favicon.ico` | 网站图标 |
 | `src/app.css`、`src/markdown.css` | 界面与 Markdown 样式 |
 | `src/core.js` | 数据结构、校验、迁移与学习逻辑 |
 | `src/ui.js`、`src/manager.js` | 页面交互与题库管理 |
