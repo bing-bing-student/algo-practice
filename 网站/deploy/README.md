@@ -4,11 +4,11 @@
 
 ## 1. 在本地生成发布文件
 
-在项目根目录执行：
+在网站目录（包含 `build.py` 的目录）执行：
 
 ```sh
-node --test 刷题工作台源码/*.test.js
-python3 刷题工作台源码/build.py --web
+node --test tests/*.test.js
+python3 build.py
 ```
 
 发布产物只有 `dist/index.html`。可以将它放在独立域名根目录，也可以放在子目录中，例如 `/study/index.html`。专题文档使用页面的 `#document=...` 地址打开，不需要配置额外的服务端路由。

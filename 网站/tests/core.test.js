@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Core = require('./core.js');
+const Core = require('../src/core.js');
 
 const catalog = {
   version: '2026-10-16',

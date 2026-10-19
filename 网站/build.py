@@ -7,8 +7,8 @@ import json
 import re
 
 
-SOURCE_DIR = Path(__file__).resolve().parent
-OUTPUT = SOURCE_DIR.parent / "刷题工作台.html"
+WEBSITE_DIR = Path(__file__).resolve().parent
+SOURCE_DIR = WEBSITE_DIR / "src"
 
 
 def read(name):
@@ -55,8 +55,9 @@ def validate_catalog(catalog):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="生成离线 HTML，可同时打包 Nginx 静态站点")
-    parser.add_argument("--web", action="store_true", help="同时生成 dist/index.html，用于静态部署")
+    parser = argparse.ArgumentParser(description="生成独立的离线 HTML 与 Nginx 静态站点")
+    parser.add_argument("--web", action="store_true", help="兼容旧命令；默认已生成 dist/index.html")
+    parser.add_argument("--local-html", type=Path, help="额外更新指定的本地 HTML 文件；相对路径按当前工作目录解析")
     args = parser.parse_args()
     shell = read("shell.html")
     style = read("app.css") + "\n" + read("markdown.css")
@@ -95,13 +96,14 @@ def main():
         raise ValueError("单文件应用不允许依赖外部样式表")
     if re.search(r"url\(\s*['\"]?(?:https?:)?//", style, flags=re.IGNORECASE):
         raise ValueError("单文件应用不允许引用远程样式资源")
-    OUTPUT.write_text(output, encoding="utf-8")
-    print(f"已生成 {OUTPUT}（{len(catalog['categories'])} 类，{len(catalog['problems'])} 题）")
-    if args.web:
-        web_output = SOURCE_DIR.parent / "dist" / "index.html"
-        web_output.parent.mkdir(parents=True, exist_ok=True)
-        web_output.write_text(output, encoding="utf-8")
-        print(f"已生成静态站点入口 {web_output}")
+    web_output = WEBSITE_DIR / "dist" / "index.html"
+    web_output.parent.mkdir(parents=True, exist_ok=True)
+    web_output.write_text(output, encoding="utf-8")
+    print(f"已生成 {web_output}（{len(catalog['categories'])} 类，{len(catalog['problems'])} 题）")
+    if args.local_html:
+        local_output = args.local_html.resolve()
+        local_output.write_text(output, encoding="utf-8")
+        print(f"已更新本地 HTML {local_output}")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { render } = require('./markdown.js');
+const { render } = require('../src/markdown.js');
 
 test('headings, emphasis, code, quoted blocks, lists, tasks and tables render offline', () => {
   const html = render('# 专题\n\n**重点**与*思路*和`Next`\n\n> 引用\n\n- [x] 已学\n- [ ] 待练\n\n3. 第一项\n4. 第二项\n\n| 题目 | 分析 |\n| :--- | ---: |\n| 206 | 反转 |\n\n---\n\n```go\nfmt.Println("hello")\n```');

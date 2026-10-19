@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const D = require('./date.js');
+const D = require('../src/date.js');
 
 test('calendar weeks start on Monday and include leap day and adjacent month dates', () => {
   const days = D.monthGrid('2024-02-15');

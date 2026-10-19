@@ -2,8 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Core = require('./core.js');
-const catalog = require('./catalog.json');
+const Core = require('../src/core.js');
+const catalog = require('../src/catalog.json');
 const categoryId = 'topic-2';
 
 function state(problemId = '283') {

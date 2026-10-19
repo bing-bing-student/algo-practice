@@ -1,8 +1,8 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Core = require('./core.js');
-const base = require('./catalog.json');
+const Core = require('../src/core.js');
+const base = require('../src/catalog.json');
 const clone = x => JSON.parse(JSON.stringify(x));
 const fresh = () => Core.createState(base, '2026-10-18');
 const mutate = (s, action, data) => Core.mutateCatalog(s, base, action, data);
@@ -23,7 +23,7 @@ test('untouched catalog keeps the chosen 140 problems and 16 categories; retired
   assert.equal(c.problems.length, 140); assert.equal(c.categories.length, 16);
   assert.equal(c.retiredProblems.length, 7); assert.equal(c.retiredCategories.length, 1);
   assert.equal(c.problems.some(p => ['200', '54', '48', '73', '240'].includes(p.id)), false);
-  assert.deepEqual(base, require('./catalog.json'));
+  assert.deepEqual(base, require('../src/catalog.json'));
 });
 
 test('new problem becomes a route variant and backup restores all metadata without bundling it into source', () => {

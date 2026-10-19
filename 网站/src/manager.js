@@ -1,8 +1,8 @@
 (function () {
   'use strict';
   function create(api) {
-    const { esc, btn, opt } = api;
-    const view = { tab: 'problems', category: 'all', pattern: 'all', query: '', role: 'all', selected: new Set(), page: 1 };
+    const { esc, btn, opt, moreActions } = api;
+    const view = { tab: 'problems', category: 'all', pattern: 'all', query: '', role: 'all', selected: new Set(), page: 1, sorting: false };
     const pageSize = 20;
     const attr = id => 'data-id="' + esc(id) + '"';
     const allCategories = () => api.catalog().categories.concat(api.catalog().retiredCategories);
@@ -22,7 +22,7 @@
     }
     function sidebar() {
       const catalog = api.catalog();
-      return '<aside class="manager-sidebar" aria-label="题库分类">' + categoryButton('all', '全部题目', catalog.problems.length) + catalog.categories.map(c => categoryButton(c.id, c.title, catalog.problems.filter(p => p.categoryId === c.id).length) + (view.category === c.id && view.tab === 'problems' ? '<div class="manager-pattern-nav">' + '<button type="button" data-action="manage-pattern-filter" data-id="all" aria-pressed="' + (view.pattern === 'all') + '">全部小题型</button>' + c.patterns.map(p => '<button type="button" data-action="manage-pattern-filter" ' + attr(p.id) + ' aria-pressed="' + (view.pattern === p.id) + '">' + esc(p.title) + '<span>' + (p.coreIds.length + p.extraIds.length) + '</span></button>').join('') + '</div>' : '')).join('') + '<div class="manager-sidebar-divider"></div>' + categoryButton('trash', '回收站', catalog.retiredProblems.length + catalog.retiredCategories.length) + btn('＋ 新建专题', 'manage-new-category', '', 'ghost small') + '</aside>';
+      return '<aside class="manager-sidebar" aria-label="题库分类">' + categoryButton('all', view.tab === 'categories' ? '全部专题' : '全部题目', view.tab === 'categories' ? catalog.categories.length : catalog.problems.length) + catalog.categories.map(c => categoryButton(c.id, c.title, catalog.problems.filter(p => p.categoryId === c.id).length) + (view.category === c.id && view.tab === 'problems' ? '<div class="manager-pattern-nav">' + '<button type="button" data-action="manage-pattern-filter" data-id="all" aria-pressed="' + (view.pattern === 'all') + '">全部小题型</button>' + c.patterns.map(p => '<button type="button" data-action="manage-pattern-filter" ' + attr(p.id) + ' aria-pressed="' + (view.pattern === p.id) + '">' + esc(p.title) + '<span>' + (p.coreIds.length + p.extraIds.length) + '</span></button>').join('') + '</div>' : '')).join('') + '<div class="manager-sidebar-divider"></div>' + categoryButton('trash', '回收站', catalog.retiredProblems.length + catalog.retiredCategories.length) + '</aside>';
     }
     function problemRows() {
       const list = matching(), trash = view.category === 'trash';
@@ -32,12 +32,12 @@
       const checked = list.length > 0 && list.every(p => view.selected.has(p.id));
       const selectedCount = view.selected.size;
       const controls = '<div class="manager-search"><label class="sr-only" for="manage-search">搜索题库</label><input type="search" id="manage-search" value="' + esc(view.query) + '" placeholder="搜索题号、题名或小题型"><label class="sr-only" for="manage-role">筛选主线与变体</label><select id="manage-role" aria-label="管理页主线与变体">' + opt('all', '主线与变体', view.role) + opt('core', '主线', view.role) + opt('extra', '变体', view.role) + '</select></div>';
-      const bulk = '<div class="manager-bulk"><label><input type="checkbox" id="manage-select-all"' + (checked ? ' checked' : '') + (!list.length ? ' disabled' : '') + '>全选筛选结果（' + list.length + '）</label><span class="small muted" role="status">已选 ' + selectedCount + ' 题</span><div class="inline-actions">' + (trash ? btn('恢复所选', 'manage-restore-selected', selectedCount ? '' : 'disabled', 'small') : btn('移动分类', 'manage-move', selectedCount ? '' : 'disabled', 'small') + btn('删除所选', 'manage-delete-selected', selectedCount ? '' : 'disabled', 'small danger')) + '</div></div>';
+      const bulk = '<div class="manager-bulk"><label><input type="checkbox" id="manage-select-all"' + (checked ? ' checked' : '') + (!list.length ? ' disabled' : '') + '>全选筛选结果（' + list.length + '）</label>' + (selectedCount ? '<span class="small muted" role="status">已选 ' + selectedCount + ' 题</span><div class="inline-actions" aria-label="批量操作">' + (trash ? btn('恢复所选', 'manage-restore-selected', '', 'small') : btn('移动分类', 'manage-move', '', 'small') + btn('删除所选', 'manage-delete-selected', '', 'small danger')) + '</div>' : '') + '</div>';
       const rows = '<div class="manager-problems" role="list" aria-label="题目列表">' + (shown.length ? shown.map(p => {
         const n = api.state().notes[p.id], history = api.state().records.filter(r => r.problemId === p.id);
         const animation = api.state().animationLinks[p.id];
-        return '<article class="manager-problem" role="listitem" data-managed-problem="' + esc(p.id) + '"><input type="checkbox" id="manage-check-' + esc(p.id) + '" data-manage-check="' + esc(p.id) + '" aria-label="选择 ' + esc(p.id + '. ' + p.title) + '"' + (view.selected.has(p.id) ? ' checked' : '') + '><div class="manager-problem-main">' + (trash ? '<h3>' + esc(p.id + '. ' + p.title) + '</h3>' : '<button type="button" class="problem-title" data-action="manage-edit-problem" ' + attr(p.id) + '><span class="problem-number">' + esc(p.id) + '.</span>' + esc(p.title) + '</button>') + '<div class="manager-problem-meta"><span class="badge ' + (p.role === 'core' ? 'main' : 'variant') + '">' + (p.role === 'core' ? '主线' : '变体') + '</span><span>' + esc(categoryById(p.categoryId).title + ' / ' + patternOf(p).title) + '</span>' + (history.length ? '<span>练过 ' + history.length + ' 次</span>' : '') + (n && n.content ? '<span>有笔记</span>' : '') + '</div></div><div class="manager-problem-links">' + (p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer">题目 ↗</a>' : '') + (animation ? '<a href="' + esc(animation) + '" target="_blank" rel="noopener noreferrer">动画 ↗</a>' : '') + '</div><div class="manager-row-actions">' + (trash ? btn('恢复', 'manage-restore-problem', attr(p.id), 'small') + btn('笔记', 'notes', attr(p.id), 'small ghost') : btn('编辑', 'manage-edit-problem', attr(p.id), 'small ghost') + btn('删除', 'manage-delete-problem', attr(p.id), 'small danger')) + '</div></article>';
-      }).join('') : '<div class="empty"><h3>' + (trash ? '没有符合条件的已删除题目' : '没有找到题目') + '</h3><p>' + (trash ? '删除的题目会保留在这里，随时可以恢复。' : '调整筛选，或在当前专题中新增一道题。') + '</p>' + (!trash ? btn('新增题目', 'manage-new-problem', '', 'primary') : '') + '</div>') + '</div>';
+        return '<article class="manager-problem" role="listitem" data-managed-problem="' + esc(p.id) + '"><input type="checkbox" id="manage-check-' + esc(p.id) + '" data-manage-check="' + esc(p.id) + '" aria-label="选择 ' + esc(p.id + '. ' + p.title) + '"' + (view.selected.has(p.id) ? ' checked' : '') + '><div class="manager-problem-main">' + '<h3>' + esc(p.id + '. ' + p.title) + '</h3>' + '<div class="manager-problem-meta"><span class="badge ' + (p.role === 'core' ? 'main' : 'variant') + '">' + (p.role === 'core' ? '主线' : '变体') + '</span><span>' + esc(categoryById(p.categoryId).title + ' / ' + patternOf(p).title) + '</span>' + (history.length ? '<span>练过 ' + history.length + ' 次</span>' : '') + (n && n.content ? '<span>有笔记</span>' : '') + '</div></div><div class="manager-problem-links">' + (p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer">题目 ↗</a>' : '') + (animation ? '<a href="' + esc(animation) + '" target="_blank" rel="noopener noreferrer">动画 ↗</a>' : '') + '</div><div class="manager-row-actions">' + (trash ? btn('恢复', 'manage-restore-problem', attr(p.id), 'small') + btn('笔记', 'notes', attr(p.id), 'small ghost') : btn('编辑', 'manage-edit-problem', attr(p.id), 'small ghost') + moreActions(btn('删除题目', 'manage-delete-problem', attr(p.id), 'small ghost danger'), '更多', p.title + '的管理操作')) + '</div></article>';
+      }).join('') : '<div class="empty"><h3>' + (trash ? '没有符合条件的已删除题目' : '没有找到题目') + '</h3><p>' + (trash ? '删除的题目会保留在这里，随时可以恢复。' : '调整筛选，或在当前专题中新增一道题。') + '</p>' + '</div>') + '</div>';
       const pager = list.length > pageSize ? '<div class="manager-pagination"><span class="small muted">' + (start + 1) + '–' + Math.min(start + pageSize, list.length) + ' / ' + list.length + ' 道题</span><div class="inline-actions">' + btn('上一页', 'manage-page', 'data-direction="-1"' + (view.page === 1 ? ' disabled' : ''), 'small') + '<span class="small">' + view.page + ' / ' + Math.ceil(list.length / pageSize) + '</span>' + btn('下一页', 'manage-page', 'data-direction="1"' + (start + pageSize >= list.length ? ' disabled' : ''), 'small') + '</div></div>' : '';
       const retiredCategories = trash && api.catalog().retiredCategories.length ? '<section class="manager-retired-categories"><h2>已删除的专题</h2>' + api.catalog().retiredCategories.map(c => '<div class="manager-retired-category"><div><h3>' + esc(c.title) + '</h3><p class="small muted">' + (api.state().topicDocs[c.id] && api.state().topicDocs[c.id].content ? '专题文档已保留' : '分类信息已保留') + '</p></div><div class="inline-actions">' + api.topicActions(c.id, true) + btn('恢复专题', 'manage-restore-category', attr(c.id), 'small') + '</div></div>').join('') + '</section>' : '';
       return controls + bulk + rows + pager + retiredCategories;
@@ -45,24 +45,34 @@
     function orderButtons(action, id, index, length, categoryId) {
       const extra = categoryId ? ' data-category="' + esc(categoryId) + '"' : '';
       const title = categoryId ? categoryById(categoryId).patterns.find(p => p.id === id).title : categoryById(id).title;
-      return btn('↑', action, attr(id) + extra + ' data-direction="-1" aria-label="上移 ' + esc(title) + '"' + (index === 0 ? ' disabled' : ''), 'small ghost') + btn('↓', action, attr(id) + extra + ' data-direction="1" aria-label="下移 ' + esc(title) + '"' + (index === length - 1 ? ' disabled' : ''), 'small ghost');
+      return btn('↑', action, attr(id) + extra + ' data-direction="-1" aria-label="上移 ' + esc(title) + '"' + (index === 0 ? ' disabled' : '') + ' id="sort-up-' + esc(id) + '"', 'small ghost') + btn('↓', action, attr(id) + extra + ' data-direction="1" aria-label="下移 ' + esc(title) + '"' + (index === length - 1 ? ' disabled' : '') + ' id="sort-down-' + esc(id) + '"', 'small ghost');
     }
+
     function categoryRows() {
       const catalog = api.catalog();
       const list = catalog.categories.filter(c => view.category === 'all' || c.id === view.category);
       return list.length ? '<div class="manager-category-list">' + list.map(c => {
         const position = catalog.categories.findIndex(x => x.id === c.id), count = catalog.problems.filter(p => p.categoryId === c.id).length;
-        return '<section class="manager-topic"><div class="manager-topic-heading"><div><h2>' + esc(c.title) + '</h2><p class="small muted">' + count + ' 道题 · ' + c.patterns.length + ' 个小题型</p></div><div class="inline-actions">' + orderButtons('manage-order-category', c.id, position, catalog.categories.length) + btn('编辑专题', 'manage-edit-category', attr(c.id), 'small') + btn('删除', 'manage-delete-category', attr(c.id), 'small danger') + '</div></div><div class="manager-topic-resources">' + api.topicActions(c.id, true) + btn('＋ 新增小题型', 'manage-new-pattern', 'data-category="' + esc(c.id) + '"', 'small ghost') + '</div><details class="manager-patterns"' + (view.category === c.id ? ' open' : '') + '><summary>小题型 · ' + c.patterns.length + '</summary>' + c.patterns.map((p, i) => '<div class="manager-pattern-row"><div><h3>' + esc(p.title) + '<span class="small muted"> · ' + (p.coreIds.length + p.extraIds.length) + ' 题</span></h3>' + (p.key ? '<p class="small muted">' + esc(p.key) + '</p>' : '') + '</div><div class="inline-actions">' + orderButtons('manage-order-pattern', p.id, i, c.patterns.length, c.id) + btn('编辑', 'manage-edit-pattern', attr(p.id) + ' data-category="' + esc(c.id) + '"', 'small ghost') + btn('删除', 'manage-delete-pattern', attr(p.id) + ' data-category="' + esc(c.id) + '"', 'small danger') + '</div></div>').join('') + '</details></section>';
-      }).join('') + '</div>' : '<div class="panel empty"><p>还没有专题，可以先新建一个。</p>' + btn('新建专题', 'manage-new-category', '', 'primary') + '</div>';
+        const deletion = count ? '<p class="action-hint">先转移专题中的题目，再删除专题。</p>' + btn('删除专题', 'manage-delete-category', attr(c.id) + ' disabled', 'small ghost danger') : btn('删除专题', 'manage-delete-category', attr(c.id), 'small ghost danger');
+        const actions = view.sorting ? orderButtons('manage-order-category', c.id, position, catalog.categories.length) : btn('编辑专题', 'manage-edit-category', attr(c.id), 'small') + moreActions(deletion, '更多', c.title + '的分类操作');
+        return '<section class="manager-topic"><div class="manager-topic-heading"><div><h2>' + esc(c.title) + '</h2><p class="small muted">' + count + ' 道题 · ' + c.patterns.length + ' 个小题型</p></div><div class="inline-actions">' + actions + '</div></div>' + (view.sorting ? '' : '<div class="manager-topic-resources">' + api.topicActions(c.id, true) + btn('＋ 新增小题型', 'manage-new-pattern', 'data-category="' + esc(c.id) + '"', 'small ghost') + '</div>') + '<details class="manager-patterns"' + (view.sorting || view.category === c.id ? ' open' : '') + '><summary>小题型 · ' + c.patterns.length + '</summary>' + c.patterns.map((p, i) => {
+          const used = allProblems().some(item => item.patternId === p.id);
+          const reason = used ? '先转移关联题目（含回收站），再删除小题型。' : c.patterns.length === 1 ? '每个专题至少保留一个小题型。' : '';
+          const remove = (reason ? '<p class="action-hint">' + reason + '</p>' : '') + btn('删除小题型', 'manage-delete-pattern', attr(p.id) + ' data-category="' + esc(c.id) + '"' + (reason ? ' disabled' : ''), 'small ghost danger');
+          return '<div class="manager-pattern-row"><div><h3>' + esc(p.title) + '<span class="small muted"> · ' + (p.coreIds.length + p.extraIds.length) + ' 题</span></h3>' + (p.key ? '<p class="small muted">' + esc(p.key) + '</p>' : '') + '</div><div class="inline-actions">' + (view.sorting ? orderButtons('manage-order-pattern', p.id, i, c.patterns.length, c.id) : btn('编辑', 'manage-edit-pattern', attr(p.id) + ' data-category="' + esc(c.id) + '"', 'small ghost') + moreActions(remove, '更多', p.title + '的小题型操作')) + '</div></div>';
+        }).join('') + '</details></section>';
+      }).join('') + '</div>' : '<div class="panel empty"><p>还没有专题，可以使用上方“新建专题”添加。</p></div>';
     }
     function render() {
       const catalog = api.catalog();
       if (!['all', 'trash'].includes(view.category) && !activeCategory(view.category)) { view.category = 'all'; view.pattern = 'all'; reset(); }
       if (view.pattern !== 'all' && !catalog.categories.some(c => c.patterns.some(p => p.id === view.pattern))) view.pattern = 'all';
       if (view.category === 'trash') view.tab = 'problems';
-      const category = categoryById(view.category);
-      const mobileFilters = '<div class="manager-mobile-filters"><label class="field" for="manage-category-filter">专题<select id="manage-category-filter">' + opt('all', '全部题目', view.category) + catalog.categories.map(c => opt(c.id, c.title, view.category)).join('') + opt('trash', '回收站', view.category) + '</select></label>' + (category && view.tab === 'problems' ? '<label class="field" for="manage-pattern-filter">小题型<select id="manage-pattern-filter">' + opt('all', '全部小题型', view.pattern) + category.patterns.map(p => opt(p.id, p.title, view.pattern)).join('') + '</select></label>' : '') + btn('新建专题', 'manage-new-category', '', 'small') + '</div>';
-      return '<div class="page-heading"><div><h1>题目管理</h1><p class="page-intro">' + catalog.problems.length + ' 道题 · ' + catalog.categories.length + ' 个专题</p></div>' + btn('＋ 新增题目', 'manage-new-problem', '', 'primary') + '</div><div class="manager-tabs" role="group" aria-label="题库管理内容">' + btn('题目列表', 'manage-tab', 'data-tab="problems" aria-pressed="' + (view.tab === 'problems') + '"') + btn('分类管理', 'manage-tab', 'data-tab="categories" aria-pressed="' + (view.tab === 'categories') + '"') + '</div>' + mobileFilters + '<div class="manager-layout">' + sidebar() + '<div class="manager-content">' + (view.tab === 'problems' ? problemRows() : categoryRows()) + '</div></div>';
+      const category = categoryById(view.category), trash = view.category === 'trash', categoryTab = view.tab === 'categories';
+      const mobileFilters = '<div class="manager-mobile-filters"><label class="field" for="manage-category-filter">专题<select id="manage-category-filter">' + opt('all', categoryTab ? '全部专题' : '全部题目', view.category) + catalog.categories.map(c => opt(c.id, c.title, view.category)).join('') + opt('trash', '回收站', view.category) + '</select></label>' + (category && !categoryTab ? '<label class="field" for="manage-pattern-filter">小题型<select id="manage-pattern-filter">' + opt('all', '全部小题型', view.pattern) + category.patterns.map(p => opt(p.id, p.title, view.pattern)).join('') + '</select></label>' : '') + '</div>';
+      const primary = trash ? '' : categoryTab ? btn('新建专题', 'manage-new-category', '', 'primary') : btn('新增题目', 'manage-new-problem', '', 'primary');
+      const sort = categoryTab && catalog.categories.length ? btn(view.sorting ? '完成排序' : '调整排序', 'manage-sort', 'aria-pressed="' + view.sorting + '"') : '';
+      return '<div class="page-heading"><div><h1>题目管理</h1><p class="page-intro">' + catalog.problems.length + ' 道题 · ' + catalog.categories.length + ' 个专题</p></div><div class="inline-actions">' + sort + primary + '</div></div><div class="manager-tabs" role="group" aria-label="题库管理内容">' + btn('题目列表', 'manage-tab', 'data-tab="problems" aria-pressed="' + (view.tab === 'problems') + '"') + btn('分类管理', 'manage-tab', 'data-tab="categories" aria-pressed="' + categoryTab + '"') + '</div>' + mobileFilters + '<div class="manager-layout">' + sidebar() + '<div class="manager-content">' + (categoryTab ? (view.sorting ? '<p class="small muted manager-sort-hint">使用上下箭头调整专题和小题型顺序，完成后退出排序。</p>' : '') + categoryRows() : problemRows()) + '</div></div>';
     }
     function error(form, message) { const el = form.querySelector('[data-management-error]'); el.textContent = message; el.hidden = false; }
     const errorMarkup = '<p class="warning manager-form-error" data-management-error role="alert" hidden></p>';
@@ -91,6 +101,13 @@
     function apply(action, values, message) {
       api.commit(action, values); api.closeModal(); api.render(); if (message) api.toast(message);
     }
+    function reorder(action, id, direction, categoryId) {
+      apply(action, { id, direction, ...(categoryId ? { categoryId } : {}) });
+      const selected = document.getElementById('sort-' + (direction < 0 ? 'up-' : 'down-') + id);
+      const fallback = document.getElementById('sort-' + (direction < 0 ? 'down-' : 'up-') + id);
+      const focus = selected && !selected.disabled ? selected : fallback;
+      if (focus && !focus.disabled) focus.focus({ preventScroll: true });
+    }
     function confirmDelete(ids) {
       if (!ids.length) return;
       const title = ids.length === 1 ? '删除“' + problemById(ids[0]).title + '”？' : '删除所选 ' + ids.length + ' 道题？';
@@ -104,7 +121,8 @@
       try {
         if (action === 'manage-category') { view.category = id; view.pattern = 'all'; reset(); api.render(); }
         if (action === 'manage-pattern-filter') { view.pattern = id; reset(); api.render(); }
-        if (action === 'manage-tab') { view.tab = target.dataset.tab; if (view.category === 'trash') view.category = 'all'; reset(); api.render(); }
+        if (action === 'manage-sort') { view.sorting = !view.sorting; api.render(); }
+        if (action === 'manage-tab') { view.sorting = false; view.tab = target.dataset.tab; if (view.category === 'trash') view.category = 'all'; reset(); api.render(); }
         if (action === 'manage-page') { view.page += Number(target.dataset.direction); api.render(); }
         if (action === 'manage-new-problem') problemModal();
         if (action === 'manage-edit-problem') problemModal(id);
@@ -117,8 +135,8 @@
         if (action === 'manage-delete-selected') confirmDelete([...view.selected]);
         if (action === 'manage-restore-problem') apply('restoreProblems', { ids: [id] }, '题目与原有资料已恢复');
         if (action === 'manage-restore-selected') { const ids = [...view.selected]; view.selected.clear(); apply('restoreProblems', { ids }, '所选题目已恢复'); }
-        if (action === 'manage-order-category') apply('orderCategory', { id, direction: Number(target.dataset.direction) });
-        if (action === 'manage-order-pattern') apply('orderPattern', { id, categoryId: target.dataset.category, direction: Number(target.dataset.direction) });
+        if (action === 'manage-order-category') reorder('orderCategory', id, Number(target.dataset.direction));
+        if (action === 'manage-order-pattern') reorder('orderPattern', id, Number(target.dataset.direction), target.dataset.category);
         if (action === 'manage-delete-category') {
           if (api.catalog().problems.some(p => p.categoryId === id)) api.toast('请先将专题中的题目转移到其他专题，再删除');
           else api.confirm('删除“' + categoryById(id).title + '”？', '专题及其文档会保留在回收站，可以恢复。', () => { try { apply('deleteCategory', { id }, '专题已移入回收站'); } catch (e) { api.toast(e.message); } }, '移入回收站');
